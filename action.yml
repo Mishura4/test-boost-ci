@@ -54,7 +54,7 @@ runs:
         echo B2_CXXSTD="${{ inputs.cxxstd != '' && format('cxxstd={0}', inputs.cxxstd) || '' }}" >> $GITHUB_ENV
         echo B2_ADDRESSMODEL="${{ inputs.address-model != '' && format('address-model={0}', inputs.address-model) || '' }}" >> $GITHUB_ENV
         echo B2_STDLIB="${{ inputs.stdlib != '' && format('stdlib={0}', inputs.stdlib) || '' }}" >> $GITHUB_ENV
-        echo CMD_SUDO="${{ runner.os == 'Windows' && '' || 'sudo' }}"
+        echo CMD_SUDO="${{ runner.os == 'Windows' && '' || 'sudo' }}" >> $GITHUB_ENV
 
     - name: Setup variables
       shell: bash
