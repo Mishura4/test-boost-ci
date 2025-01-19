@@ -23,7 +23,7 @@ jobs:
           - { toolset: 'gcc', variant: 'debug' }
     steps:
       - name: Install apt packages
-        if: ${{ startsWith(matrix.os.toolset, 'clang') }}
+        if: ${{ startsWith(matrix.cfg.toolset, 'clang') }}
         run: |
             sudo sed -i 's/azure\.//' /etc/apt/sources.list &&
             sudo apt update &&
