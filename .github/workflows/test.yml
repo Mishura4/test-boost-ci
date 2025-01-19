@@ -8,7 +8,7 @@ jobs:
   linux-ci:
     name: Linux Test
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.os.dist }}-${{ matrix.os.arch }}-(${{ matrix.variant }}-${{ matrix.toolset }})
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.os.dist }}-${{ matrix.os.arch }}-(${{ matrix.cfg.version }}-${{ matrix.cfg.variant }}-${{ matrix.cfg.toolset }})
       cancel-in-progress: true
     runs-on: ${{ matrix.os.dist }}-${{ matrix.os.version }}
     strategy:
