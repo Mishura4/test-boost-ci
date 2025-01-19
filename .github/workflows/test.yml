@@ -1,82 +1,51 @@
 name: Windows Build
 on:
-  workflow_dispatch:
-    inputs:
-      arch:
-        type: string
-        default: x64
-      boost:
-        type: string
-        default: 1.87.0
-      os:
-        type: string
-        default: windows-2022
-      compiler:
-        type: string
-        default: vs2022
-      generator:
-        type: string
-        default: Ninja
-      build:
-        type: choice
-        default: Debug
-        options:
-          - Debug
-          - Release
-          - RelWithDebInfo
-      cmake-flags:
-        type: string
-        default: ''
-      pack:
-        type: boolean
-        default: false
+  push:
 
 permissions: read-all
 
 jobs:
-  ci:
-    name: ${{ inputs.compiler }}-${{ inputs.generator }} ${{ inputs.build }}
-    outputs:
-      artifact: ${{ steps.upload.outputs.artifact-id }}
-    runs-on: ${{ inputs.os }}
+  linux-ci:
+    name: Linux Test
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.os.codename }}-${{ matrix.os.arch }}-(${{ matrix.cfg.cxx }}-${{ matrix.cfg.version }}-${{ matrix.build-type }})
+      cancel-in-progress: true
+    runs-on: ${{ matrix.os.dist }}-${{ matrix.os.version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ amd64 ]
+        os:
+          - { name: 'Ubuntu', dist: 'ubuntu', version: 24.04 }
+        variant: [ debug, release ]
+        toolset: [ clang, gcc ]
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: ./.github/action.yml
         with:
-          submodules: true
+          toolset: ${{ matrix.toolset }}
+          variant: ${{ matrix.variant }}
 
-      - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
+  windows-ci:
+    name: Windows Test
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.os.dist }}-${{ matrix.os.arch }}-(${{ matrix.cfg.version }}-${{ matrix.cfg.generator }}-${{ matrix.build-type }})
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false # Don't cancel other matrix jobs if one fails
+      matrix:
+        arch: [ x64 ]
+        os:
+          - { name: 'Windows', dist: windows, version: 2022 }
+        variant: [ debug, release ]
+        toolset: [ msvc ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Setup Visual Studio environment
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Restore boost
-        id: restore-boost
-        uses: actions/cache/restore@v4
+      - uses: ./.github/action.yml
         with:
-          path: 'boost-install'
-          key: boost-${{ inputs.boost }}-${{ inputs.compiler }}-${{ inputs.build }}
-
-      - name: Download Boost source
-        id: checkout-boost
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          archive='boost-${{ inputs.boost }}' &&
-          gh release download boost-${{ inputs.boost }} -R boostorg/boost -p 'boost-*-b2-nodocs.7z' -O "$archive".7z --clobber &&
-          7z x "$archive".7z -spe &&
-          mv $archive boost
-
-      - name: Build boost
-        shell: bash
-        run: |
-          mkdir boost-install && (cd boost && ./bootstrap.sh msvc && ./b2 install --prefix="../boost-install" -q toolset=msvc variant=${{ inputs.build == 'Debug' && 'debug' || 'release' }} cxxstd=latest runtime-link=static address-model=64 threading=multi link=static)
-
-      - name: Cache boost
-        id: cache-boost
-        uses: actions/cache/save@v4
-        with:
-          path: 'boost-install'
-          key: ${{ steps.restore-boost.outputs.cache-primary-key }}
+          toolset: ${{ matrix.toolset }}
+          variant: ${{ matrix.variant }}
