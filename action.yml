@@ -42,7 +42,7 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        echo BOOST_TAG="${{ version == "latest" && "`gh release view -R boostorg/boost --jq ".name" --json name`" || format('boost-{0}', version) }}" >> $GITHUB_ENV
+        echo BOOST_TAG="${{ inputs.version == "latest" && "`gh release view -R boostorg/boost --jq ".name" --json name`" || format('boost-{0}', inputs.version) }}" >> $GITHUB_ENV
 
     - name: Restore boost
       id: restore-boost
