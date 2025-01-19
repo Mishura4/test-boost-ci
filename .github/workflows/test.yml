@@ -72,7 +72,7 @@ jobs:
       - name: Build boost
         shell: bash
         run: |
-          mkdir boost-install && (cd boost && ./bootstrap.sh msvc && ./b2 install --prefix="../boost-install" -q toolset=msvc variant=${{ inputs.build == 'Debug' && 'debug' || 'release' }} cxxstd=latest runtime-link=static address-model=64 threading-multi link=static)
+          mkdir boost-install && (cd boost && ./bootstrap.sh msvc && ./b2 install --prefix="../boost-install" -q toolset=msvc variant=${{ inputs.build == 'Debug' && 'debug' || 'release' }} cxxstd=latest runtime-link=static address-model=64 threading=multi link=static)
 
       - name: Cache boost
         id: cache-boost
