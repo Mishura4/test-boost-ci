@@ -55,7 +55,7 @@ jobs:
         id: restore-boost
         uses: actions/cache/restore@v4
         with:
-          path: 'boost/install'
+          path: 'boost-install'
           key: boost-${{ inputs.boost }}-${{ inputs.compiler }}-${{ inputs.build }}
 
       - name: Download Boost source
@@ -72,14 +72,11 @@ jobs:
       - name: Build boost
         shell: bash
         run: |
-          cd boost && (mkdir -p install; true) &&
-          ./bootstrap.sh msvc &&
-          b2 install --prefix="`pwd`/install" -q toolset=msvc variant=${{ inputs.build == 'Debug' && 'debug' || 'release' }} cxxstd=latest runtime-link=static address-model=64 threading-multi link=static &&
-          cd ..
+          mkdir boost-install && (cd boost && ./bootstrap.sh msvc && ./b2 install --prefix="../boost-install" -q toolset=msvc variant=${{ inputs.build == 'Debug' && 'debug' || 'release' }} cxxstd=latest runtime-link=static address-model=64 threading-multi link=static)
 
       - name: Cache boost
         id: cache-boost
         uses: actions/cache/save@v4
         with:
-          path: 'boost/install'
+          path: 'boost-install'
           key: ${{ steps.restore-boost.outputs.cache-primary-key }}
