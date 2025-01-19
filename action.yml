@@ -48,7 +48,7 @@ runs:
       run: |
         BOOST_TAG="${{ inputs.version == 'latest' && '`gh release view -R boostorg/boost --jq ".name" --json name`' || format('boost-{0}', inputs.version) }}"
         echo BOOST_TAG="$BOOST_TAG" >> $GITHUB_ENV
-        BOOST_KEY_RAW=$BOOST_TAG.${{ inputs.toolset }}.${{ inputs.variant }}.${{ inputs.link }}.${{ inputs.runtime-link }}.${{ inputs.threading }}.${{ inputs.cxxstd }}"
+        BOOST_KEY_RAW="$BOOST_TAG.${{ inputs.toolset }}.${{ inputs.variant }}.${{ inputs.link }}.${{ inputs.runtime-link }}.${{ inputs.threading }}.${{ inputs.cxxstd }}"
         echo BOOST_KEY=${BOOST_KEY_RAW//,/-} >> $GITHUB_ENV
 
     - name: Restore boost
