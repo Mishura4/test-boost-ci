@@ -66,7 +66,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download boostorg/boost -p 'boost-${{ inputs.boost }}-b2-nodocs.zip' -O boost.zip &&
+          gh release download boost-${{ inputs.boost }} -R boostorg/boost -p 'boost-*-b2-nodocs.zip' -O boost.zip --clobber &&
           unzip boost.zip
 
       - name: Build boost
