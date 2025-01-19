@@ -70,14 +70,15 @@ runs:
       id: restore-boost
       uses: actions/cache/restore@v4
       with:
-        path: '${{ inputs.install-dir }}'
+        path: ${{ env.BOOST_DIR }}
         key: ${{ env.BOOST_KEY }}
 
     - name: Add MSBuild to PATH
-      if: runner.os == 'Windows'
+      if: runner.os == 'Windows' && (steps.restore-boost.outputs.cache-hit != 'true')
       uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
 
     - name: Download Boost source
+      if: (steps.restore-boost.outputs.cache-hit != 'true')
       id: checkout-boost
       env:
         GH_TOKEN: ${{ github.token }}
@@ -89,12 +90,14 @@ runs:
         mv $archive boost
 
     - name: Build boost
+      if: (steps.restore-boost.outputs.cache-hit != 'true')
       shell: bash
       run: |
-        ( sudo mkdir -p "$BOOST_DIR" ; true )
+        ( mkdir -p "$BOOST_DIR" ; true )
         ( cd boost && chmod -R u+x . && ./bootstrap.sh && sudo ./b2 install --prefix="$BOOST_DIR" -d0 -q ${{ env.B2_VARIANT }} ${{ env.B2_TOOLSET }} ${{ env.B2_STDLIB }} ${{ env.B2_ADDRESSMODEL }} ${{ env.B2_RUNTIME }} ${{ env.B2_THREADING }} ${{ env.B2_LINK }} ${{ env.B2_CXXSTD }} )
 
     - name: Cache boost
+      if: (steps.restore-boost.outputs.cache-hit != 'true')
       id: cache-boost
       uses: actions/cache/save@v4
       with:
