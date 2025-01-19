@@ -58,15 +58,19 @@ jobs:
           path: 'boost/install'
           key: boost-${{ inputs.boost }}-${{ inputs.compiler }}-${{ inputs.build }}
 
-      - name: Install chocolatey packages ${{ inputs.arch }}
-        uses: seanmiddleditch/gha-setup-ninja@v5
+      - name: Install 7zip
+        run: choco install 7zip.install
 
       - name: Download Boost source
         id: checkout-boost
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
-        run: gh release download boost-${{ inputs.boost }} -R boostorg/boost -p 'boost-*-b2-nodocs.7z' -O boost.zip --clobber && 7z x boost.zip
+        run: |
+          set archive='boost-${{ inputs.boost }}' &&
+          gh release download boost-${{ inputs.boost }} -R boostorg/boost -p 'boost-*-b2-nodocs.7z' -O "$archive".7z --clobber &&
+          7z x "$archive".7z -spe &&
+          mv $archive boost
 
       - name: Build boost
         shell: cmd
