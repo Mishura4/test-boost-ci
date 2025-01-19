@@ -43,14 +43,15 @@ runs:
         GH_TOKEN: ${{ github.token }}
       run: |
         echo BOOST_TAG="${{ inputs.version == 'latest' && '`gh release view -R boostorg/boost --jq ".name" --json name`' || format('boost-{0}', inputs.version) }}" >> $GITHUB_ENV
-        echo BOOST_KEY_RAW="${{ env.BOOST_TAG }}-${{ inputs.toolset }}-${{ inputs.variant }}-${{ inputs.link }}-${{ inputs.runtime-link }}-${{ inputs.threading }}-${{ inputs.cxxstd }}"
+        BOOST_KEY_RAW="${{ env.BOOST_TAG }}-${{ inputs.toolset }}-${{ inputs.variant }}-${{ inputs.link }}-${{ inputs.runtime-link }}-${{ inputs.threading }}-${{ inputs.cxxstd }}"
+        echo BOOST_KEY=${BOOST_KEY_RAW//,/.}
 
     - name: Restore boost
       id: restore-boost
       uses: actions/cache/restore@v4
       with:
         path: '${{ github.workspace }}/boost-install'
-        key: ${BOOST_KEY_RAW//,/.}
+        key: ${{ env.BOOST_KEY }}
 
     - name: Add MSBuild to PATH
       if: runner.os == 'Windows'
