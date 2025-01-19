@@ -18,29 +18,39 @@ inputs:
   runtime-link:
     description: "How to link the runtime library"
     required: false
-    default: static,shared
   threading:
     description: "Threading mode to use"
     required: false
-    default: multi,single
   link:
     description: "How to link boost"
     required: false
-    default: static
   cxxstd:
     description: "C++ standard to use (restricts which libraries are built)"
     required: false
-    default: latest
   address-model:
     description: "Address-model"
     required: false
-    default:
+  stdlib:
+    description: "Standard library to use"
+    required: false
 outputs:
   boostdir:
     description: "Path at which boost was installed"
 runs:
   using: "composite"
   steps:
+    - name: Setup defaults
+      shell: bash
+      run: |
+        echo B2_VARIANT="${{ inputs.variant != '' && format('variant={0}', inputs.variant) || '' }}" >> $GITHUB_ENV
+        echo B2_TOOLSET="${{ inputs.toolset != '' && format('toolset={0}', inputs.toolset) || '' }}" >> $GITHUB_ENV
+        echo B2_RUNTIME="${{ inputs.runtime-link != '' && format('runtime-link={0}', inputs.runtime-link) || '' }}" >> $GITHUB_ENV
+        echo B2_THREADING="${{ inputs.threading != '' && format('threading={0}', inputs.threading) || '' }}" >> $GITHUB_ENV
+        echo B2_LINK="${{ inputs.link != '' && format('link={0}', inputs.link) || '' }}" >> $GITHUB_ENV
+        echo B2_CXXSTD="${{ inputs.cxxstd != '' && format('cxxstd={0}', inputs.cxxstd) || '' }}" >> $GITHUB_ENV
+        echo B2_ADDRESSMODEL="${{ inputs.address-model != '' && format('address-model={0}', inputs.address-model) || '' }}" >> $GITHUB_ENV
+        echo B2_STDLIB="${{ inputs.stdlib != '' && format('stdlib={0}', inputs.stdlib) || '' }}" >> $GITHUB_ENV
+
     - name: Setup
       shell: bash
       env:
@@ -48,7 +58,7 @@ runs:
       run: |
         BOOST_TAG="${{ inputs.version == 'latest' && '`gh release view -R boostorg/boost --jq ".name" --json name`' || format('boost-{0}', inputs.version) }}"
         echo BOOST_TAG="$BOOST_TAG" >> $GITHUB_ENV
-        BOOST_KEY_RAW="$BOOST_TAG.${{ inputs.toolset }}.${{ inputs.variant }}.${{ inputs.link }}.${{ inputs.runtime-link }}.${{ inputs.threading }}.${{ inputs.cxxstd }}"
+        BOOST_KEY_RAW="$BOOST_TAG.${{ inputs.toolset }}.${{ inputs.variant }}.${{ inputs.address-model }}.${{ inputs.link }}.${{ inputs.runtime-link }}.${{ inputs.threading }}.${{ inputs.stdlib }}.${{ inputs.cxxstd }}"
         echo BOOST_KEY=${BOOST_KEY_RAW//,/-} >> $GITHUB_ENV
 
     - name: Restore boost
@@ -77,7 +87,7 @@ runs:
       shell: bash
       run: |
         mkdir boost-install
-        (cd boost && chmod -R u+x . && ./bootstrap.sh && ./b2 install --prefix="../boost-install" -q toolset=${{ inputs.toolset }} variant=${{ inputs.variant }} cxxstd=${{ inputs.cxxstd }} runtime-link=${{ inputs.runtime-link }} ${{ inputs.address-model != '' && format('address-model={0}', inputs.address-model) || '' }} threading=${{ inputs.threading }} link=${{ inputs.link }})
+        ( cd boost && chmod -R u+x . && ./bootstrap.sh && ./b2 install --prefix="../boost-install" -q ${{ env.B2_VARIANT }} ${{ env.B2_TOOLSET }} ${{ env.B2_STDLIB }} ${{ env.B2_ADDRESSMODEL }} ${{ env.B2_RUNTIME }} ${{ env.B2_THREADING }} ${{ env.B2_LINK }} ${{ env.B2_CXXSTD }} )
 
     - name: Cache boost
       id: cache-boost
