@@ -27,8 +27,10 @@ jobs:
 
       - uses: ./
         with:
-          toolset: ${{ matrix.toolset }}
-          variant: ${{ matrix.variant }}
+          version: ${{ matrix.cfg.version }}
+          toolset: ${{ matrix.cfg.toolset }}
+          variant: ${{ matrix.cfg.variant }}
+          stdlib: ${{ matrix.cfg.stdlib }}
 
   windows-ci:
     name: Windows Test

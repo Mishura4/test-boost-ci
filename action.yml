@@ -4,7 +4,6 @@ inputs:
   version:
     description: "Version of boost to install"
     required: false
-    default: 'latest'
   download-url:
     description: "Where to download the archive from"
     required: false
@@ -56,7 +55,7 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        BOOST_TAG="${{ inputs.version == 'latest' && '`gh release view -R boostorg/boost --jq ".name" --json name`' || format('boost-{0}', inputs.version) }}"
+        BOOST_TAG="${{ inputs.version == '' && '`gh release view -R boostorg/boost --jq ".name" --json name`' || format('boost-{0}', inputs.version) }}"
         echo BOOST_TAG="$BOOST_TAG" >> $GITHUB_ENV
         BOOST_KEY_RAW="$BOOST_TAG.${{ inputs.toolset }}.${{ inputs.variant }}.${{ inputs.address-model }}.${{ inputs.link }}.${{ inputs.runtime-link }}.${{ inputs.threading }}.${{ inputs.stdlib }}.${{ inputs.cxxstd }}"
         echo BOOST_KEY=${BOOST_KEY_RAW//,/-} >> $GITHUB_ENV
