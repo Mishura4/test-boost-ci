@@ -48,8 +48,8 @@ runs:
       run: |
         BOOST_TAG="${{ inputs.version == 'latest' && '`gh release view -R boostorg/boost --jq ".name" --json name`' || format('boost-{0}', inputs.version) }}"
         echo BOOST_TAG="$BOOST_TAG" >> $GITHUB_ENV
-        BOOST_KEY_RAW="${{ env.BOOST_TAG }}-${{ inputs.toolset }}-${{ inputs.variant }}-${{ inputs.link }}-${{ inputs.runtime-link }}-${{ inputs.threading }}-${{ inputs.cxxstd }}"
-        echo BOOST_KEY=${BOOST_KEY_RAW//,/.} >> $GITHUB_ENV
+        BOOST_KEY_RAW=$BOOST_TAG.${{ inputs.toolset }}.${{ inputs.variant }}.${{ inputs.link }}.${{ inputs.runtime-link }}.${{ inputs.threading }}.${{ inputs.cxxstd }}"
+        echo BOOST_KEY=${BOOST_KEY_RAW//,/-} >> $GITHUB_ENV
 
     - name: Restore boost
       id: restore-boost
@@ -68,7 +68,7 @@ runs:
         GH_TOKEN: ${{ github.token }}
       shell: bash
       run: |
-        archive='boost-${{ inputs.boost }}' &&
+        archive='${{ env.BOOST_TAG }}' &&
         gh release download ${{ env.BOOST_TAG }} -R boostorg/boost -p 'boost-*-b2-nodocs.7z' -O "$archive".7z --clobber &&
         7z x "$archive".7z -spe &&
         mv $archive boost
