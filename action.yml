@@ -30,7 +30,7 @@ inputs:
   cxxstd:
     description: "C++ standard to use (restricts which libraries are built)"
     required: false
-    default: static
+    default: latest
   address-model:
     description: "Address-model"
     required: false
