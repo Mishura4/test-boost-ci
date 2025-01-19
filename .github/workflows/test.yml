@@ -71,7 +71,7 @@ jobs:
 
       - name: Build boost
         shell: cmd
-        run: (if not exist boost\install mkdir boost\install) && bootstrap.bat msvc && b2 install --prefix="boost\install" toolset=msvc variant=${{ inputs.build == 'Debug' && 'debug' || 'release' }} cxxstd=latest runtime-link=static
+        run: (cd boost && (if not exist install mkdir install) && bootstrap.bat msvc && b2 install --prefix=".\install" toolset=msvc variant=${{ inputs.build == 'Debug' && 'debug' || 'release' }} cxxstd=latest runtime-link=static)
 
       - name: Cache boost
         id: cache-boost
