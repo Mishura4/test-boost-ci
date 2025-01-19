@@ -11,18 +11,18 @@ inputs:
   variant:
     description: "Variants to build"
     required": false
-    default: [ debug, release ]
+    default: debug,release
   toolset:
     description: "Toolset to use"
     required: true
   runtime-link:
     description: "How to link the runtime library"
     required: false
-    default: [ static, shared ]
+    default: static,shared
   threading:
     description: "Threading mode to use"
     required: false
-    default: [ multi, single ]
+    default: multi,single
   link:
     description: "How to link boost"
     required: false
@@ -43,13 +43,14 @@ runs:
         GH_TOKEN: ${{ github.token }}
       run: |
         echo BOOST_TAG="${{ inputs.version == 'latest' && '`gh release view -R boostorg/boost --jq ".name" --json name`' || format('boost-{0}', inputs.version) }}" >> $GITHUB_ENV
+        echo BOOST_KEY_RAW="${{ env.BOOST_TAG }}-${{ inputs.toolset }}-${{ inputs.variant }}-${{ inputs.link }}-${{ inputs.runtime-link }}-${{ inputs.threading }}-${{ inputs.cxxstd }}"
 
     - name: Restore boost
       id: restore-boost
       uses: actions/cache/restore@v4
       with:
         path: '${{ github.workspace }}/boost-install'
-        key: ${{ env.BOOST_TAG }}-${{ join(inputs.toolset, '.') }}-${{ join(inputs.variant, '.') }}-${{ join(inputs.link, '.') }}-${{ join(inputs.runtime-link, '.') }}-${{ join(inputs.threading, '.') }}-${{ inputs.cxxstd }}
+        key: ${BOOST_KEY_RAW//,/.}
 
     - name: Add MSBuild to PATH
       if: runner.os == 'Windows'
@@ -69,7 +70,7 @@ runs:
     - name: Build boost
       shell: bash
       run: |
-        mkdir boost-install && (cd boost && ./bootstrap.sh msvc && ./b2 install --prefix="../boost-install" -q toolset=msvc variant=${{ inputs.build == 'Debug' && 'debug' || 'release' }} cxxstd=latest runtime-link=static address-model=64 threading=multi link=static --layout=versioned)
+        mkdir boost-install && (cd boost && ./bootstrap.sh msvc && ./b2 install --prefix="../boost-install" -q toolset=msvc variant=${{ inputs.build == 'Debug' && 'debug' || 'release' }} cxxstd=latest runtime-link=static address-model=64 threading=multi link=static)
 
     - name: Cache boost
       id: cache-boost
