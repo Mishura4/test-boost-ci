@@ -77,7 +77,7 @@ runs:
       shell: bash
       run: |
         mkdir boost-install
-        (cd boost && bash ./bootstrap.sh && ./b2 install --prefix="../boost-install" -q toolset=${{ inputs.toolset }} variant=${{ inputs.variant }} cxxstd=${{ inputs.cxxstd }} runtime-link=${{ inputs.runtime-link }} ${{ inputs.address-model != '' && format('address-model={0}', inputs.address-model) || '' }} threading=${{ inputs.threading }} link=${{ inputs.link }})
+        (cd boost && chmod -R u+x . && ./bootstrap.sh && ./b2 install --prefix="../boost-install" -q toolset=${{ inputs.toolset }} variant=${{ inputs.variant }} cxxstd=${{ inputs.cxxstd }} runtime-link=${{ inputs.runtime-link }} ${{ inputs.address-model != '' && format('address-model={0}', inputs.address-model) || '' }} threading=${{ inputs.threading }} link=${{ inputs.link }})
 
     - name: Cache boost
       id: cache-boost
