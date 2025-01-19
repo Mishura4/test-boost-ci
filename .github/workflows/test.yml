@@ -23,10 +23,11 @@ jobs:
           - { toolset: 'gcc', variant: 'debug' }
     steps:
       - name: Install apt packages
+        if: ${{ startsWith(matrix.os.toolset, 'clang') }}
         run: |
             sudo sed -i 's/azure\.//' /etc/apt/sources.list &&
             sudo apt update &&
-            sudo apt-get install -y ninja-build gcc g++ clang++ clang libc++-dev libc++abi-dev pkg-config python3
+            sudo apt-get install -y libc++-dev libc++abi-dev
 
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
