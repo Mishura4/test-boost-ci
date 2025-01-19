@@ -70,6 +70,7 @@ jobs:
           mv $archive boost
 
       - name: Build boost
+        shell: bash
         run: |
           cd boost && (mkdir -p install; true) &&
           ./bootstrap.sh msvc &&
