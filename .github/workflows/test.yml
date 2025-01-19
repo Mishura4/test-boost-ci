@@ -1,0 +1,86 @@
+name: Windows Build
+on:
+  workflow_dispatch:
+    inputs:
+      arch:
+        type: string
+        default: x64
+      boost:
+        type: string
+        default: 1.87.0
+      os:
+        type: string
+        default: windows-2022
+      compiler:
+        type: string
+        default: vs2022
+      generator:
+        type: string
+        default: Ninja
+      build:
+        type: choice
+        default: Debug
+        options:
+          - Debug
+          - Release
+          - RelWithDebInfo
+      cmake-flags:
+        type: string
+        default: ''
+      pack:
+        type: boolean
+        default: false
+
+permissions: read-all
+
+jobs:
+  ci:
+    name: ${{ inputs.compiler }}-${{ inputs.generator }} ${{ inputs.build }}
+    outputs:
+      artifact: ${{ steps.upload.outputs.artifact-id }}
+    runs-on: ${{ inputs.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          submodules: true
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
+
+      - name: Setup Visual Studio environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Restore boost
+        id: restore-boost
+        uses: actions/cache/restore@v4
+        with:
+          path: 'boost/install'
+          key: boost-${{ inputs.boost }}-${{ inputs.compiler }}-${{ inputs.build }}
+
+      - name: Install chocolatey packages ${{ inputs.arch }}
+        uses: seanmiddleditch/gha-setup-ninja@v5
+
+      - name: Cache boost
+        id: cache-boost
+        uses: actions/cache/save@v4
+        with:
+          path: 'boost/install'
+          key: ${{ steps.restore-boost.outputs.cache-primary-key }}
+
+      - name: Download Boost source
+        id: checkout-boost
+        run: |
+          gh release download boostorg/boost -p 'boost-${{ inputs.boost }}-b2-nodocs.zip' -O boost.zip &&
+          unzip boost.zip
+
+      - name: Build boost
+        shell: cmd
+        run: (if not exist boost\install mkdir boost\install) && bootstrap.bat msvc && b2 install --prefix="boost\install" toolset=msvc variant=${{ inputs.build == 'Debug' && 'debug' || 'release' }} cxxstd=latest runtime-link=static
+
+      - name: Cache boost
+        id: cache-boost
+        uses: actions/cache/save@v4
+        with:
+          path: 'boost/install'
+          key: ${{ steps.restore-boost.outputs.cache-primary-key }}
