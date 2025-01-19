@@ -70,8 +70,12 @@ jobs:
           mv $archive boost
 
       - name: Build boost
-        shell: cmd
-        run: (cd boost && (if not exist install mkdir install) && bootstrap.bat msvc && b2 install --prefix=".\install" toolset=msvc variant=${{ inputs.build == 'Debug' && 'debug' || 'release' }} cxxstd=latest runtime-link=static)
+        shell: bash
+        run: |
+          cd boost && mkdir -p install &&
+          bootstrap.sh msvc &&
+          b2 install --prefix="`pwd`/install" -q toolset=msvc variant=${{ inputs.build == 'Debug' && 'debug' || 'release' }} cxxstd=latest runtime-link=static address-model=64 threading-multi link=static &&
+          cd ..
 
       - name: Cache boost
         id: cache-boost
