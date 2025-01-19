@@ -31,6 +31,10 @@ inputs:
     description: "C++ standard to use (restricts which libraries are built)"
     required: false
     default: static
+  address-model:
+    description: "Address-model"
+    required: false
+    default:
 outputs:
   boostdir:
     description: "Path at which boost was installed"
@@ -42,9 +46,10 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        echo BOOST_TAG="${{ inputs.version == 'latest' && '`gh release view -R boostorg/boost --jq ".name" --json name`' || format('boost-{0}', inputs.version) }}" >> $GITHUB_ENV
+        BOOST_TAG="${{ inputs.version == 'latest' && '`gh release view -R boostorg/boost --jq ".name" --json name`' || format('boost-{0}', inputs.version) }}"
+        echo BOOST_TAG="$BOOST_TAG" >> $GITHUB_ENV
         BOOST_KEY_RAW="${{ env.BOOST_TAG }}-${{ inputs.toolset }}-${{ inputs.variant }}-${{ inputs.link }}-${{ inputs.runtime-link }}-${{ inputs.threading }}-${{ inputs.cxxstd }}"
-        echo BOOST_KEY=${BOOST_KEY_RAW//,/.}
+        echo BOOST_KEY=${BOOST_KEY_RAW//,/.} >> $GITHUB_ENV
 
     - name: Restore boost
       id: restore-boost
@@ -71,7 +76,8 @@ runs:
     - name: Build boost
       shell: bash
       run: |
-        mkdir boost-install && (cd boost && ./bootstrap.sh msvc && ./b2 install --prefix="../boost-install" -q toolset=msvc variant=${{ inputs.build == 'Debug' && 'debug' || 'release' }} cxxstd=latest runtime-link=static address-model=64 threading=multi link=static)
+        mkdir boost-install
+        (cd boost && ./bootstrap.sh && ./b2 install --prefix="../boost-install" -q toolset=${{ inputs.toolset }} variant=${{ inputs.variant }} cxxstd=${{ inputs.cxxstd }} runtime-link=${{ inputs.runtime-link }} ${{ inputs.address-model != '' && format('address-model={0}', inputs.address-model) || '' }} threading=${{ inputs.threading }} link=${{ inputs.link }})
 
     - name: Cache boost
       id: cache-boost
