@@ -73,7 +73,7 @@ jobs:
         shell: bash
         run: |
           cd boost && (mkdir -p install; true) &&
-          bootstrap.sh msvc &&
+          ./bootstrap.sh msvc &&
           b2 install --prefix="`pwd`/install" -q toolset=msvc variant=${{ inputs.build == 'Debug' && 'debug' || 'release' }} cxxstd=latest runtime-link=static address-model=64 threading-multi link=static &&
           cd ..
 
