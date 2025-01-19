@@ -32,11 +32,14 @@ inputs:
   stdlib:
     description: "Standard library to use"
     required: false
+  install-dir:
+    description: "Where to install boost"
+    required: false
+    default: boost-install
 outputs:
   boostdir:
     description: "Path at which boost was installed"
-    value: ${{ steps.restore-boost.outputs.cache-primary-key }}
-
+    value: ${{ env.BOOST_DIR }}
 runs:
   using: "composite"
   steps:
@@ -52,7 +55,7 @@ runs:
         echo B2_ADDRESSMODEL="${{ inputs.address-model != '' && format('address-model={0}', inputs.address-model) || '' }}" >> $GITHUB_ENV
         echo B2_STDLIB="${{ inputs.stdlib != '' && format('stdlib={0}', inputs.stdlib) || '' }}" >> $GITHUB_ENV
 
-    - name: Setup
+    - name: Setup variables
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
@@ -61,12 +64,13 @@ runs:
         echo BOOST_TAG="$BOOST_TAG" >> $GITHUB_ENV
         BOOST_KEY_RAW="$BOOST_TAG.${{ inputs.toolset }}.${{ inputs.variant }}.${{ inputs.address-model }}.${{ inputs.link }}.${{ inputs.runtime-link }}.${{ inputs.threading }}.${{ inputs.stdlib }}.${{ inputs.cxxstd }}"
         echo BOOST_KEY=${BOOST_KEY_RAW//,/-} >> $GITHUB_ENV
+        echo BOOST_DIR=`realpath "${{ inputs.install-dir }}" >> $GITHUB_ENV
 
     - name: Restore boost
       id: restore-boost
       uses: actions/cache/restore@v4
       with:
-        path: '${{ github.workspace }}/boost-install'
+        path: '${{ inputs.install-dir }}'
         key: ${{ env.BOOST_KEY }}
 
     - name: Add MSBuild to PATH
@@ -87,12 +91,12 @@ runs:
     - name: Build boost
       shell: bash
       run: |
-        mkdir boost-install
-        ( cd boost && chmod -R u+x . && ./bootstrap.sh && ./b2 install --prefix="../boost-install" -q ${{ env.B2_VARIANT }} ${{ env.B2_TOOLSET }} ${{ env.B2_STDLIB }} ${{ env.B2_ADDRESSMODEL }} ${{ env.B2_RUNTIME }} ${{ env.B2_THREADING }} ${{ env.B2_LINK }} ${{ env.B2_CXXSTD }} )
+        ( sudo mkdir -p "$BOOST_DIR" ; true )
+        ( cd boost && chmod -R u+x . && ./bootstrap.sh && sudo ./b2 install --prefix="$BOOST_DIR" -d0 -q ${{ env.B2_VARIANT }} ${{ env.B2_TOOLSET }} ${{ env.B2_STDLIB }} ${{ env.B2_ADDRESSMODEL }} ${{ env.B2_RUNTIME }} ${{ env.B2_THREADING }} ${{ env.B2_LINK }} ${{ env.B2_CXXSTD }} )
 
     - name: Cache boost
       id: cache-boost
       uses: actions/cache/save@v4
       with:
-        path: 'boost-install'
+        path: ${{ env.BOOST_DIR }}
         key: ${{ steps.restore-boost.outputs.cache-primary-key }}
