@@ -65,9 +65,8 @@ jobs:
         id: checkout-boost
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release download boost-${{ inputs.boost }} -R boostorg/boost -p 'boost-*-b2-nodocs.zip' -O boost.zip --clobber &&
-          unzip -q boost.zip
+        shell: bash
+        run: gh release download boost-${{ inputs.boost }} -R boostorg/boost -p 'boost-*-b2-nodocs.7z' -O boost.zip --clobber && 7z x boost.zip
 
       - name: Build boost
         shell: cmd
