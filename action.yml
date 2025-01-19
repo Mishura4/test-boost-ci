@@ -35,6 +35,8 @@ inputs:
 outputs:
   boostdir:
     description: "Path at which boost was installed"
+    value: ${{ steps.restore-boost.outputs.cache-primary-key }}
+
 runs:
   using: "composite"
   steps:
