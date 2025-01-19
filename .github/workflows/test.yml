@@ -61,13 +61,6 @@ jobs:
       - name: Install chocolatey packages ${{ inputs.arch }}
         uses: seanmiddleditch/gha-setup-ninja@v5
 
-      - name: Cache boost
-        id: cache-boost
-        uses: actions/cache/save@v4
-        with:
-          path: 'boost/install'
-          key: ${{ steps.restore-boost.outputs.cache-primary-key }}
-
       - name: Download Boost source
         id: checkout-boost
         run: |
