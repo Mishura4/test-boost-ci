@@ -40,6 +40,9 @@ outputs:
   boostdir:
     description: "Path at which boost was installed"
     value: ${{ env.BOOST_DIR }}
+defaults:
+  run:
+    shell: bash
 runs:
   using: "composite"
   steps:
@@ -63,7 +66,7 @@ runs:
         BOOST_TAG="${{ inputs.version == '' && '`gh release view -R boostorg/boost --jq ".name" --json name`' || format('boost-{0}', inputs.version) }}"
         echo BOOST_TAG="$BOOST_TAG" >> $GITHUB_ENV
         BOOST_KEY_RAW="$BOOST_TAG.${{ inputs.toolset }}.${{ inputs.variant }}.${{ inputs.address-model }}.${{ inputs.link }}.${{ inputs.runtime-link }}.${{ inputs.threading }}.${{ inputs.stdlib }}.${{ inputs.cxxstd }}"
-        echo BOOST_KEY=${BOOST_KEY_RAW//,/-} >> $GITHUB_ENV
+        echo BOOST_KEY="${BOOST_KEY_RAW//,/-}" >> $GITHUB_ENV
         echo BOOST_DIR="`realpath "${{ inputs.install-dir }}"`" >> $GITHUB_ENV
 
     - name: Restore boost
